@@ -1203,12 +1203,7 @@ if (btnDescargar) {
     <p>&copy; 2025 Rifa$ueldo. Todos los derechos reservados.</p>
   </div>
 </footer>
-<script>
-  var url = window.location.toString();
-  if (url.indexOf("m=1") !== -1) {
-    window.location = url.replace(/([?&])m=1/, '$1m=0');
-  }
-</script>
+
 
   <script>
   const waBox = document.getElementById('wa-slidebox');
@@ -1219,7 +1214,38 @@ if (btnDescargar) {
 });
     
 </script>
+  <script>
+function iniciarContador(fechaSorteoStr) {
+  const contador = document.getElementById("contador-sorteo");
+  if (!contador) return;
 
+  const fechaSorteo = new Date(fechaSorteoStr).getTime();
+
+  function actualizar() {
+    const ahora = new Date().getTime();
+    const diferencia = fechaSorteo - ahora;
+
+    if (diferencia <= 0) {
+      contador.textContent = "¡Sorteo en curso o finalizado!";
+      clearInterval(intervalo);
+      return;
+    }
+
+    const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+    const horas = Math.floor((diferencia / (1000 * 60 * 60)) % 24);
+    const minutos = Math.floor((diferencia / (1000 * 60)) % 60);
+    const segundos = Math.floor((diferencia / 1000) % 60);
+
+    contador.textContent = `Faltan ${dias}d ${horas}h ${minutos}m ${segundos}s`;
+  }
+
+  actualizar(); // Llamar de inmediato
+  const intervalo = setInterval(actualizar, 1000);
+}
+
+// Iniciar el contador para la fecha del sorteo
+iniciarContador("2025-07-16T21:00:00");
+</script>
 
 
 </body>
