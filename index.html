@@ -687,25 +687,20 @@ let rifas = [], seleccionadosPorRifa = {}, paginas = {}, vendidosPorRifa = {};
 let descuentoAplicado = 0; // porcentaje (ejemplo: 10 = 10%)
 
 const codigosDescuentoValidos = {
-  PROMO30: 30,
+  PROMO10: 10,
   DESC100: 100,
   SOLIDARIO5: 5,
 };
 
 // Función que valida si el código de descuento es válido para la cantidad de números seleccionados
 function validarDescuento(codigo, cantidadSeleccionada) {
-  if (!codigosDescuentoValidos[codigo]) {
-    console.log(`Código "${codigo}" inválido.`);
-    return 0;
-  }
+  if (!codigosDescuentoValidos[codigo]) return 0;
 
   // Limitar descuentos solo para 2 o 3 números seleccionados
   if (cantidadSeleccionada >= 2 && cantidadSeleccionada <= 3) {
-    console.log(`Código "${codigo}" válido para ${cantidadSeleccionada} números.`);
     return codigosDescuentoValidos[codigo];
   } else {
-    console.log(`Código "${codigo}" NO válido para ${cantidadSeleccionada} números.`);
-    return 0; // Si no cumple, no aplica descuento
+    return 0; // No aplica descuento
   }
 }
 
@@ -745,53 +740,26 @@ document.getElementById("codigo-descuento").addEventListener("input", function (
   actualizarTotal(idxRifaActiva);
 });
 
-// Para que al cambiar la selección de números también se actualice el descuento y total:
-function actualizarDescuentoYTotal() {
-  const idxRifaActiva = rifas.findIndex((r) => r.dataset.activa === "1");
-  if (idxRifaActiva === -1) return;
+// Actualiza el total a pagar en el formulario considerando descuento y cantidad válida
+function actualizarTotal(idx) {
+  const rifa = rifas[idx];
+  const valorUnitario = parseFloat(rifa.dataset.valor);
+  const cantidad = seleccionadosPorRifa[idx]?.size || 0;
+  let total = cantidad * valorUnitario;
 
-  const inputCodigo = document.getElementById("codigo-descuento");
-  const codigo = inputCodigo.value.trim().toUpperCase();
-
-  if (!codigo) {
-    descuentoAplicado = 0;
-    document.getElementById("mensaje-descuento").style.display = "none";
-    actualizarTotal(idxRifaActiva);
-    return;
-  }
-
-  const cantidadSeleccionada = seleccionadosPorRifa[idxRifaActiva]?.size || 0;
-  const descuentoValido = validarDescuento(codigo, cantidadSeleccionada);
-
-  if (descuentoValido > 0) {
-    descuentoAplicado = descuentoValido;
-    const mensajeDesc = document.getElementById("mensaje-descuento");
-    mensajeDesc.style.color = "green";
-    mensajeDesc.textContent = `Código válido: ${descuentoAplicado}% de descuento aplicado.`;
-    mensajeDesc.style.display = "block";
+  if (
+    descuentoAplicado > 0 &&
+    cantidad >= 2 &&
+    cantidad <= 3
+  ) {
+    total = total - (total * descuentoAplicado) / 100;
   } else {
     descuentoAplicado = 0;
-    const mensajeDesc = document.getElementById("mensaje-descuento");
-    mensajeDesc.style.color = "red";
-    mensajeDesc.textContent = "Código inválido, expirado o no válido para la cantidad seleccionada.";
-    mensajeDesc.style.display = "block";
+    document.getElementById("mensaje-descuento").style.display = "none";
   }
 
-  actualizarTotal(idxRifaActiva);
+  document.getElementById("total-pagar").textContent = total.toLocaleString("es-AR");
 }
-
-// Modifica el click en los números para llamar a la actualización de descuento y total:
-rifas.forEach((rifa, idx) => {
-  const cont = rifa.querySelector(".numeros-container");
-  if (!cont) return;
-  cont.querySelectorAll(".numero").forEach((div) => {
-    div.onclick = () => {
-      // (Tu lógica existente para selección)
-      // Al final:
-      actualizarDescuentoYTotal();
-    };
-  });
-});
 
 
 // Mostrar un toast con mensaje
